@@ -1,0 +1,91 @@
+# Add the git branch to the prompt when you're in a repo (requires git-prompt.sh)
+source ~/.git-prompt.sh
+export PS1="[\A \w\$(__git_ps1)]$ "
+
+# Add aliases for frequently used git commands ----------------------------------
+# internal command to check if user is in a git repo
+isgit() {
+  isgit=`git rev-parse --is-inside-work-tree 2>/dev/null`
+  if [[ $isgit =~ true ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+# delbranch <branch>
+# Example: delbranch my_branch
+delbranch() {
+  if isgit; then
+    if [[ -z "$1" ]]; then
+      echo "Branch name is missing"
+      exit -1
+    else
+      # delete local
+      read -r -p "Deleting $1. Are you sure? [y|N] " response
+      if [[ $response =~ ^[yY] ]]; then
+        git checkout develop
+        git branch -D $1
+      fi  
+      # delete remote
+      read -r -p "Delete the remote branch? [y|N] " response
+      if [[ $response =~ ^[yY] ]]; then
+        git push origin :$1 
+      fi  
+    fi  
+  else
+    echo "Command must be run inside a git repo"
+  fi  
+}
+# fix <branch> <upstream-parent>
+#Example: fix Issue-1234-big-bug 0.1.0
+fix() {
+  if isgit; then
+    if [[ -z "$1" ]]; then
+      echo "Branch name is missing"
+      exit -1
+    elif [[ -z "$2" ]]; then
+      echo "Parent branch is missing"
+      exit -1
+    else
+      read -r -p "Create $1 as child of upstream/$2? [y|N] " response
+      if [[ $response =~ ^[yY] ]]; then
+        git checkout -b $1 upstream/$2
+        git pull
+        git push origin $1
+      else
+        echo "Aborting"
+      fi  
+    fi  
+  else
+    echo "Command must be run inside a git repo"
+  fi  
+}
+# renbranch <old-branch> <new-branch>
+# Example: Issue-1234-big-bug Issue-1234-big-bug-Use-case-1
+renbranch() {
+  if isgit; then
+    if [[ -z "$1" ]]; then
+      echo "Branch name is missing"
+      exit -1
+    elif [[ -z "$2" ]]; then
+      echo "New branch name is missing"
+      exit -1
+    else
+      read -r -p "Rename $1 to $2? [y|N] " response
+      if [[ $response =~ ^[yY] ]]; then
+        git branch -m $1 $2
+        read -r -p "Rename remote $1 to $2? (No will leave the existing remote branch) [y|N] " remote_response
+        if [[ $remote_response =~ ^[yY] ]]; then
+          # delete the old branch
+          git push origin :$1
+        fi
+        # set tracking and push to create the new remote
+        git push --set-upstream origin $2
+      else
+        echo "Aborting"
+      fi
+    fi
+  else
+    echo "Command must be run inside a git repo"
+  fi
+}

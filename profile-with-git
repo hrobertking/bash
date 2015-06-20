@@ -1,6 +1,5 @@
-# Add the git branch to the prompt when you're in a repo (requires git-prompt.sh)
-source ~/.git-prompt.sh
-export PS1="[\A \w\$(__git_ps1)]$ "
+# Add the git branch to the prompt when you're in a repo
+export PS1="[\A \w \$(git rev-parse --abbrev-ref HEAD 2>/dev/null)]$ "
 
 # Add aliases for frequently used git commands ----------------------------------
 # internal command to check if user is in a git repo

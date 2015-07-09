@@ -1,3 +1,8 @@
+# ---------------------------------------------------
+# Save this file in your home directory (e.g., ~/.git-bash)
+# and source it in your .bash_profile (e.g., source .git-bash)
+# ---------------------------------------------------
+
 # Add the git branch to the prompt when you're in a repo
 export PS1="[\A \w \$(git rev-parse --abbrev-ref HEAD 2>/dev/null)]$ "
 
@@ -29,6 +34,7 @@ fix() {
 				git pull
 				git push origin $1
 			else
+				# feel free to add something here if your remote is not "upstream"
 				echo "Aborting"
 			fi  
 		fi  
@@ -61,6 +67,22 @@ mvbranch() {
 			else
 				echo "Aborting"
 			fi
+		fi
+	else
+		echo "Command must be run inside a git repo"
+	fi
+}
+
+# nuke [<commit>]
+# Example: nuke 59324c8a68
+nuke() {
+	if isgit; then
+		read -r -p "Totally start over? [y|N] " response
+		if [[ $response =~ ^[yY] ]]; then
+			git fetch --all
+			git reset --hard $1
+		else
+			echo "Aborting"
 		fi
 	else
 		echo "Command must be run inside a git repo"
